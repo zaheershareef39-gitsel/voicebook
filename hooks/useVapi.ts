@@ -5,6 +5,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Vapi from '@vapi-ai/web';
 import { useAuth } from '@clerk/nextjs';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 import { ASSISTANT_ID, DEFAULT_VOICE, VOICE_SETTINGS } from '@/lib/constants';
 import { getVoice } from '@/lib/utils';
@@ -224,6 +226,8 @@ export function useVapi(book: IBook) {
         };
     }, []);
 
+    const router = useRouter();
+
     const start = useCallback(async () => {
         if (!userId) {
             setLimitError('Please sign in to start a voice session.');
@@ -238,6 +242,14 @@ export function useVapi(book: IBook) {
             const result = await startVoiceSession(userId, book._id);
 
             if (!result.success) {
+                // billing-specific response may want redirect
+                if (result.isBillingError) {
+                    toast.error(result.error || 'Session limit reached. Please upgrade your plan.');
+                    router.push('/subscriptions');
+                    setStatus('idle');
+                    return;
+                }
+
                 setLimitError(result.error || 'Session limit reached. Please upgrade your plan.');
                 setStatus('idle');
                 return;

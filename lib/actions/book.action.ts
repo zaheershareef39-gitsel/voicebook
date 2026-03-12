@@ -28,7 +28,7 @@ export const checkBookExists = async (title: string) => {
     }
 };
 
-export const createBook = async (data: CreateBook) => {
+export const createBook = async (data: CreateBook): Promise<import('@/types').CreateBookResult> => {
     try {
         await connectToDatabase();
         const slug = generateSlug(data.title);
@@ -49,7 +49,8 @@ export const createBook = async (data: CreateBook) => {
             if (owned >= limits.maxBooks) {
                 return {
                     success: false,
-                    error: `You may only upload ${limits.maxBooks} book${limits.maxBooks === 1 ? '' : 's'} on the ${plan} plan.`
+                    error: `You may only upload ${limits.maxBooks} book${limits.maxBooks === 1 ? '' : 's'} on the ${plan} plan.`,
+                    isBillingError: true,
                 };
             }
         }
@@ -64,7 +65,7 @@ export const createBook = async (data: CreateBook) => {
         console.error('Error Creating Book', e);
         return {
             success: false,
-            error: e
+            error: (e as Error).message || String(e)
         };
     }
 };

@@ -66,7 +66,22 @@ export interface CreateBook {
     coverBlobKey?: string;
     fileSize: number;
 }
+// server action return shapes ------------------------------------------------
+export interface CreateBookResult {
+    success: boolean;
+    data?: IBook;             // present when book is created or already exists
+    alreadyExists?: boolean;  // caller can show notification if true
+    error?: string;           // human-readable message on failure
+    isBillingError?: boolean; // true when failure due to plan limits
+}
 
+export interface StartSessionResult {
+    success: boolean;
+    sessionId?: string;
+    error?: string;
+    maxDurationMinutes?: number | null;
+    isBillingError?: boolean;
+}
 export interface TextSegment {
     text: string;
     segmentIndex: number;

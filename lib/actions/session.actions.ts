@@ -23,7 +23,8 @@ export const startVoiceSession = async (clerkId: string, bookId: string): Promis
             if (used >= limits.maxSessionsPerMonth) {
                 return {
                     success: false,
-                    error: 'You have reached your monthly session limit for your subscription plan.'
+                    error: 'You have reached your monthly session limit for your subscription plan.',
+                    isBillingError: true,
                 };
             }
         }

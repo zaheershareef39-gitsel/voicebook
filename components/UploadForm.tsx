@@ -292,7 +292,15 @@ const UploadForm = () => {
                 coverURL: coverUrl,
                 fileSize: pdfFile.size,
             });
-            if (!book.success) throw new Error("Failed to create book");
+            if (!book.success) {
+                // display any message returned by the server
+                toast.error(book.error as string || 'Failed to create book.');
+                if (book.isBillingError) {
+                    // guide user to upgrade plan
+                    router.push('/subscriptions');
+                }
+                return;
+            }
             if (book.alreadyExists) {
                 toast.info('Book with same title already exists');
                 form.reset();
