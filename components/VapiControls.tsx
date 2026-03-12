@@ -3,10 +3,25 @@ import useVapi from '@/hooks/useVapi'
 import { IBook } from '@/types'
 import { Mic, MicOff } from 'lucide-react'
 import Transcript from './Transcript'
+import { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+
 
 const VapiControls = ({ book }: { book: IBook }) => {
     const { status, isActive, messages, currentMessage, currentUserMessage, duration,
-        start, stop, clearError } = useVapi(book)
+        start, stop, limitError, clearError } = useVapi(book)
+    
+    const prevErrorRef = useRef<string | null>(null);
+
+    // Show error toast only when a NEW error appears (not on every render)
+    useEffect(() => {
+        if (limitError && limitError !== prevErrorRef.current) {
+            toast.error(limitError);
+            prevErrorRef.current = limitError;
+        } else if (!limitError) {
+            prevErrorRef.current = null;
+        }
+    }, [limitError]);
     return (
         <>
             <div className="vapi-main-container">

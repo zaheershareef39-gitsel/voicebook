@@ -169,8 +169,12 @@ export function useVapi(book: IBook) {
                 }
             },
 
-            error: (error: Error) => {
-                console.error('Vapi error:', error);
+            error: (error: Error | any) => {
+                // Vapi can pass an Event object or Error, need to handle both
+                const errorMsg = error?.message || error?.type || 'Unknown error';
+                const errorStr = String(errorMsg).toLowerCase();
+                console.error('Vapi error event:', { message: errorMsg, error });
+
                 // Don't reset isStoppingRef here - delayed events may still fire
                 setStatus('idle');
                 setCurrentMessage('');
@@ -190,14 +194,17 @@ export function useVapi(book: IBook) {
                     sessionIdRef.current = null;
                 }
 
-                // Show user-friendly error message
-                const errorMessage = error.message?.toLowerCase() || '';
-                if (errorMessage.includes('timeout') || errorMessage.includes('silence')) {
+                // Show diagnostic error message to user
+                if (errorStr.includes('ejection') || errorStr.includes('meeting')) {
+                    setLimitError('Unable to connect to voice session. Please try again.');
+                } else if (errorStr.includes('timeout') || errorStr.includes('silence')) {
                     setLimitError('Session ended due to inactivity. Click the mic to start again.');
-                } else if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+                } else if (errorStr.includes('network') || errorStr.includes('connection')) {
                     setLimitError('Connection lost. Please check your internet and try again.');
+                } else if (errorStr.includes('permission') || errorStr.includes('microphone')) {
+                    setLimitError('Microphone access denied. Check browser permissions and try again.');
                 } else {
-                    setLimitError('Session ended unexpectedly. Click the mic to start again.');
+                    setLimitError(`Session error: ${errorMsg}. Click the mic to try again.`);
                 }
 
                 startTimeRef.current = null;
@@ -240,6 +247,7 @@ export function useVapi(book: IBook) {
         try {
             // Check session limits and create session record
             const result = await startVoiceSession(userId, book._id);
+            console.debug('startVoiceSession result', result);
 
             if (!result.success) {
                 // billing-specific response may want redirect
@@ -250,6 +258,8 @@ export function useVapi(book: IBook) {
                     return;
                 }
 
+                // show generic error via toast as the UI otherwise remains idle
+                toast.error(result.error || 'Unable to start voice session. Please try again later.');
                 setLimitError(result.error || 'Session limit reached. Please upgrade your plan.');
                 setStatus('idle');
                 return;
