@@ -4,6 +4,8 @@ import { CreateBook, TextSegment } from '@/types';
 import { escapeRegex, generateSlug, serializeData } from '../utils';
 import Book from '@/database/models/book.model';
 import BookSegment from '@/database/models/bookSegment.model';
+import { getUserPlan } from '@/lib/subscription';
+import { getPlanLimits } from '@/lib/subscription-constants';
 import mongoose from 'mongoose';
 import { revalidatePath } from 'next/cache';
 
@@ -38,7 +40,20 @@ export const createBook = async (data: CreateBook) => {
                 alreadyExists: true,
             };
         }
-        // Todo: Check Subscription limits before creating Book
+
+        // enforce plan limits
+        const plan = await getUserPlan();
+        const limits = getPlanLimits(plan);
+        if (limits.maxBooks !== null) {
+            const owned = await Book.countDocuments({ clerkId: data.clerkId });
+            if (owned >= limits.maxBooks) {
+                return {
+                    success: false,
+                    error: `You may only upload ${limits.maxBooks} book${limits.maxBooks === 1 ? '' : 's'} on the ${plan} plan.`
+                };
+            }
+        }
+
         const book = await Book.create({ ...data, slug, totalSegments: 0 });
         revalidatePath('/');
         return {

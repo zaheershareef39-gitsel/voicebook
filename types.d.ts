@@ -120,5 +120,26 @@ export interface FileUploadFieldProps<T extends FieldValues> {
 export interface StartSessionResult {
     success: boolean;
     sessionId?: string;
+    // maximum number of minutes the user is allowed to record based on their plan
+    maxDurationMinutes?: number;
     error?: string;
+}
+
+// subscription related types
+export type Plan = 'free' | 'standard' | 'pro';
+
+export interface PlanLimits {
+    maxBooks: number;
+    /**
+     * maximum sessions allowed per billing period (null == unlimited)
+     */
+    maxSessionsPerMonth: number | null;
+    /**
+     * cap on a single session's duration in minutes
+     */
+    maxSessionMinutes: number;
+    /**
+     * whether the plan permits viewing past session history
+     */
+    hasSessionHistory: boolean;
 }

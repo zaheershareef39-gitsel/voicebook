@@ -5,11 +5,21 @@ import React from 'react'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { SignInButton, SignUpButton, UserButton, Show, useUser } from '@clerk/nextjs'
+import { useUserPlan } from '@/hooks/useSubscription';
 
 const navItems = [
     { label: "Library", href: "/" },
     { label: "Add New", href: "/books/new" },
 ]
+
+
+const PlanBadge: React.FC = () => {
+    const plan = useUserPlan();
+    if (!plan) return null;
+    return (
+        <span className="ml-2 text-sm text-gray-600">{plan.charAt(0).toUpperCase() + plan.slice(1)}</span>
+    );
+};
 
 const Navbar = () => {
     const pathName = usePathname();
@@ -44,6 +54,8 @@ const Navbar = () => {
                                             {user.firstName}
                                         </Link>
                                     )}
+                                    {/* show plan badge */}
+                                    <PlanBadge />
                                 </div>
 
                             </Show>

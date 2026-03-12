@@ -4,6 +4,8 @@ import { StartSessionResult } from "@/types";
 import { connectToDatabase } from "@/database/mongoose";
 import VoiceSession from "@/database/models/voiceSession.model";
 import { getCurrentBillingPeriodStart } from "../subscription-constants";
+import { getUserPlan } from '@/lib/subscription';
+import { getPlanLimits } from '../subscription-constants';
 
 
 
@@ -11,7 +13,20 @@ export const startVoiceSession = async (clerkId: string, bookId: string): Promis
     try {
         await connectToDatabase();
 
-        // Limits/Plan to see whether a session is allowed.
+        // enforce plan/session limits
+        const plan = await getUserPlan();
+        const limits = getPlanLimits(plan);
+
+        if (limits.maxSessionsPerMonth !== null) {
+            const periodStart = getCurrentBillingPeriodStart();
+            const used = await VoiceSession.countDocuments({ clerkId, billingPeriodStart: periodStart });
+            if (used >= limits.maxSessionsPerMonth) {
+                return {
+                    success: false,
+                    error: 'You have reached your monthly session limit for your subscription plan.'
+                };
+            }
+        }
 
         const session = await VoiceSession.create({
             clerkId, bookId, startedAt: new Date(),
@@ -20,7 +35,7 @@ export const startVoiceSession = async (clerkId: string, bookId: string): Promis
         });
         return {
             success: true, sessionId: session._id.toString(),
-            // maxDurationMinutes: check.maxDurationMinutes,
+            maxDurationMinutes: limits.maxSessionMinutes,
         };
 
     } catch (e) {
