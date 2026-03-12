@@ -1,0 +1,2 @@
+﻿components/UploadForm.tsx(251,39): error TS2448: Block-scoped variable 'book' used before its declaration.
+components/UploadForm.tsx(251,39): error TS2454: Variable 'book' is used before being assigned.
