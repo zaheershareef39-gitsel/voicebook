@@ -308,6 +308,12 @@ const UploadForm = () => {
                 return;
             }
 
+            // book.data should be present when success=true and not alreadyExists
+            if (!book.data) {
+                toast.error('Unexpected error: missing book information.');
+                return;
+            }
+
             const segments = await saveBookSegments(book.data._id, userId, parsePDF.content);
             if (!segments.success) {
                 toast.error("Failed to save book segments");
