@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { PricingTable, SubscribedUserBanner } from '@clerk/nextjs';
+import { PricingTable } from '@clerk/nextjs';
 
 const SubscriptionsPage = () => {
     return (
@@ -16,10 +16,7 @@ const SubscriptionsPage = () => {
                         standard: "Upload up to 10 books and 100 sessions a month",
                         pro: "Unlimited sessions and 100 books, with 1‑hour sessions",
                     }}
-                >
-                    {/* If the user is already subscribed this banner will show above the table */}
-                    <SubscribedUserBanner type="dismissible" />
-                </PricingTable>
+                />
             </div>
         </main>
     );

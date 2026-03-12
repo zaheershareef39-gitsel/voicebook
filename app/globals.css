@@ -197,8 +197,6 @@
     @apply max-w-7xl px-5 mx-auto w-full min-h-screen pt-20 flex flex-col items-center justify-center py-10;
   }
 
-  .auth-shadow {
-
   /* Subscription page styles */
   .page-title {
     @apply text-3xl font-bold mb-4;
